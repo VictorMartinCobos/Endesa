@@ -20,12 +20,33 @@ tidy_csv <- function(file) {
   file %>% 
     drop_na() %>%
     transmute(
-      ts = ymd_hm(
-        str_c(Fecha,str_sub(Hora, 1, 5)),
-        tz = "Europe/Madrid"),
-      consume = `Consumo (Wh)`) %>% 
-    transmute_if(
-      count(date(ts) == 25),
-    
-    )
-}
+      date = Fecha,
+      hour = hm(str_sub(Hora, 1, 5)),
+      consume = `Consumo (Wh)`) %>%
+    add_count(date) %>% 
+    transmute(
+      date,
+      hour,
+      consume,
+      ts = case_when(
+        n == 25 & hour == "2H 0M" ~ ymd_hms(
+          str_c(date, hour - hm("1H 0M"), sep = " "),
+          tz = "Europe/Madrid")
+        + dhours(),
+        n == 25 & hour > "2H 0M" ~ ymd_hms(
+          str_c(date, hour - hm("1H 0M"), sep = " "),
+          tz = "Europe/Madrid"),
+        n == 23 & hour >= "2H 0M" ~ ymd_hms(
+          str_c(date, hour + hm("1H 0M"), sep = " "),
+          tz = "Europe/Madrid"),
+        hour == "0s" ~ ymd_h(
+          str_c(date, "0H", sep = " "),
+          tz = "Europe/Madrid"),
+        TRUE ~ ymd_hms(str_c(date, hour, sep = " "), tz = "Europe/Madrid")
+      ),
+      n)
+  }
+      
+
+#25 horas -> CEST a CET. Las 2 se fuerzan a CEST. El resto se resta una hora.
+#23 horas -> CET a CEST
