@@ -24,6 +24,8 @@ csv_list <- map(list_csv_names, import_csv)
 #Join csv in an unique tibble
 data <- reduce(csv_list, bind_rows)
 
+#Tidy csv
+data_tidy <-tidy_csv(data)
 
 
 
