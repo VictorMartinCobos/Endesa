@@ -29,20 +29,27 @@ tidy_csv <- function(file) {
       hour,
       consume,
       ts = case_when(
-        n == 25 & hour == "2H 0M" ~ ymd_hms(
+        n == 25 & hour == "2H 0M" ~ as_datetime(
           str_c(date, hour - hm("1H 0M"), sep = " "),
-          tz = "Europe/Madrid")
+          tz = "Europe/Madrid",
+          format = "%Y-%m-%d %HH %MM %SS")
         + dhours(),
-        n == 25 & hour > "2H 0M" ~ ymd_hms(
+        n == 25 & hour > "2H 0M" ~ as_datetime(
           str_c(date, hour - hm("1H 0M"), sep = " "),
-          tz = "Europe/Madrid"),
-        n == 23 & hour >= "2H 0M" ~ ymd_hms(
+          tz = "Europe/Madrid",
+          format = "%Y-%m-%d %HH %MM %SS"),
+        n == 23 & hour >= "2H 0M" ~ as_datetime(
           str_c(date, hour + hm("1H 0M"), sep = " "),
-          tz = "Europe/Madrid"),
-        hour == "0s" ~ ymd_h(
+          tz = "Europe/Madrid",
+          format = "%Y-%m-%d %HH %MM %SS"),
+        hour == "0s" ~ as_datetime(
           str_c(date, "0H", sep = " "),
-          tz = "Europe/Madrid"),
-        TRUE ~ ymd_hms(str_c(date, hour, sep = " "), tz = "Europe/Madrid")
+          tz = "Europe/Madrid",
+          format = "%Y-%m-%d %HH"),
+        TRUE ~ as_datetime(
+          str_c(date, hour, sep = " "),
+          tz = "Europe/Madrid",
+          format = "%Y-%m-%d %HH %MM %SS")
       ),
       n)
   }
