@@ -1,0 +1,38 @@
+---
+title: "Report_Endesa"
+output: html_document
+params:
+  total_consumption: ""
+  year_consumption: ""
+  mean_month_consumption: ""
+  mean_day_consumption : ""
+  mean_wday_consumption: ""
+  mean_hour_consumption: ""
+  mean_date_consumption: ""
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+A continuación, vamos a presentar los principales datos extraídos acerca del consumo de luz producido por usted a lo largo del periodo que ha introducido en la base de datos. Estos resultados refieren a los principales aspectos de interés en el consumo de cualquier usuario, a fin de permitirles optimizar su consumo y planificar las futuras contrataciones con empresas de consumo eléctrico atendiendo a estos datos.
+
+## Resultados básicos
+
+A continuación vamos a presentar los principales datos que recopilan el consumo producido en diversos periodos.
+
+### Consumo total
+
+El consumo total durante el periodo analizado es de `r total_consumption`. A continuación, se puede ver un desglose del consumo por año:
+
+`r year_consumption`
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
