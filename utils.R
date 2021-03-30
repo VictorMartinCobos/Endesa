@@ -58,14 +58,16 @@ parse <- function(n, hour, date) {
   )
 }
 
-#Obtain total consumption
-total_consumption <- function(file) {
-  file %>%
-    summarise(mean(consumption))
+#Function to obtain any data
+consumption_func_time <- function(file, f, time = NULL, ...) {
+  if(is.null(time)) {
+    file %>% 
+      summarise(consumption = f(consumption))
+  } 
+  else {
+    file %>% 
+      group_by(ts = time(ts, ...)) %>% 
+      summarise(consumption = f(consumption))
+  } 
 }
 
-#Obtain mean
-mean <- function(file, var) {
-  file %>% 
-    group_by(var)
-}
