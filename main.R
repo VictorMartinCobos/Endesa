@@ -1,6 +1,7 @@
 # ENDESA REPORT GENERATOR MAIN ----------------------------------------------
 library(tidyverse)
 library(lubridate)
+library(gganimate)
 source("utils.R")
 
 #Select a Directory
@@ -30,23 +31,50 @@ data_tidy <-tidy_csv(data)
 #Generate report
 total_consumption <- consumption_func_time(data_tidy, sum) %>% pull(1)
 year_consumption <- consumption_func_time(data_tidy, sum, year)
-year_con_plot <- ggplot(year_consumption,aes(y = consumption, x = ts))
-  + geom_bar(stat = "identity")
+year_con_plot <- ggplot(year_consumption,aes(y = consumption, x = ts)) +
+  geom_bar(stat = "identity")
 mean_month_consumption <- consumption_func_time(
   data_tidy,
   mean,
   month,
   label = TRUE)
+month_con_plot <- ggplot(mean_month_consumption,aes(y = consumption, x = ts)) +
+  geom_bar(stat = "identity")
 mean_day_consumption <- consumption_func_time(data_tidy, mean, day)
+day_con_plot <- ggplot(mean_day_consumption,aes(y = consumption, x = ts)) +
+  geom_bar(stat = "identity")
 mean_wday_consumption <- consumption_func_time(
   data_tidy,
   mean,
   wday,
   label = TRUE,
   week_start = 1)
+wday_con_plot <- ggplot(mean_wday_consumption,aes(y = consumption, x = ts)) +
+  geom_bar(stat = "identity")
 mean_hour_consumption <- consumption_func_time(data_tidy, mean, hour)
-mean_date_consumption <- consumption_func_time(data_tidy, mean, date)
+hour_con_plot <- ggplot(mean_hour_consumption,aes(y = consumption, x = ts)) +
+  geom_bar(stat = "identity")
+mean_week_consumption <- consumption_func_time(data_tidy, mean, week)
+week_con_plot <- ggplot(mean_week_consumption,aes(y = consumption, x = ts)) +
+  geom_bar(stat = "identity")
+mean_yday_consumption <- consumption_func_time(data_tidy, mean, yday)
+yday_con_plot <- ggplot(mean_yday_consumption,aes(y = consumption, x = ts)) +
+  geom_area()
 
+#Animated plots
+animated_month_plot <- data_tidy %>% 
+  group_by(day = day(ts), month = month (ts)) %>% 
+  summarise(consumption = mean(consumption)) %>% 
+  ggplot(aes(day, consumption)) +
+    geom_bar(stat = "identity")+
+    labs(
+      title = "Mes: {as.integer(frame_time)}",
+      x = "Día del mes",
+      y = "Consumo") +
+    transition_time(month) +
+    ease_aes("linear")
+
+#Function to ask for file name
 doc_name <- rstudioapi::showPrompt(
   "Nombre de fichero",
   "Selecciona un nombre para el fichero",
@@ -63,7 +91,14 @@ rmarkdown::render(
     mean_day_consumption = mean_day_consumption ,
     mean_wday_consumption = mean_wday_consumption,
     mean_hour_consumption = mean_hour_consumption,
-    mean_date_consumption = mean_date_consumption,
+    mean_week_consumption = mean_week_consumption,
+    year_con_plot = year_con_plot,
+    month_con_plot = month_con_plot,
+    day_con_plot = day_con_plot,
+    wday_con_plot = wday_con_plot,
+    hour_con_plot = hour_con_plot,
+    week_con_plot = week_con_plot,
+    animated_month_plot = animated_month_plot
   )
 )
 
