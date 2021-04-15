@@ -1,6 +1,7 @@
 ---
-title: "Report_Endesa"
+title: "Informe de consumo de luz (Endesa)"
 output: html_document
+runtime: shiny
 params:
   total_consumption: ""
   year_consumption: ""
@@ -16,10 +17,17 @@ params:
   hour_con_plot: ""
   week_con_plot: ""
   animated_month_plot: ""
+  data_day_month_labeled: ""
+  wday_consumption_facet: ""
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+library(shiny)
+library(tidyverse)
+library(gganimate)
+library(gifski)
+library(knitr)
 ```
 
 A continuación, vamos a presentar los principales datos extraídos acerca del consumo de luz producido por usted a lo largo del periodo que ha introducido en la base de datos. Estos resultados refieren a los principales aspectos de interés en el consumo de cualquier usuario, a fin de permitirles optimizar su consumo y planificar las futuras contrataciones con empresas de consumo eléctrico atendiendo a estos datos.
@@ -30,65 +38,90 @@ A continuación vamos a presentar los principales datos que recopilan el consumo
 
 ### Consumo total
 
-El consumo total durante el periodo analizado es de `r total_consumption`. A continuación, se puede ver un desglose del consumo por año:
+El consumo total durante el periodo analizado es de `r as.integer(total_consumption)`. A continuación, se puede ver un desglose del consumo por año:
 
-```{r}
+```{r, echo = FALSE, message = FALSE}
 
-year_consumption
-year_con_plot
+kable(year_consumption)
+renderPlot({year_con_plot})
 ```
-
-Es importante recalcar que todavía no contamos con los datos de todo 2021.
 
 ### Consumo por mes
 
-Tal y como se puede observar en el desglose por meses, el consumo es significativamente superior en los meses de diciembre y enero. Este elevado consumo se puede deber a toda la iluminación dispuesta en Navidad, lo cual nos hace tomar constancia del impacto negativo que puede suponer en la factura y hacernos considerar futuras modificaciones en nuestro consumo a fin de reducir el gasto.
+A continuación, se desglosan los datos de consumo medio en cada mes del año.
 
-Adicionalmente, como se puede observar los meses de menor consumo son mayo, octubre y noviembre, meses los cuales coinciden con la etapa escolar y el buen clima (lo cual reduce el tiempo efectivo en el hogar).
-
-```{r}
-mean_month_consumption
-month_con_plot
+```{r, echo = FALSE, message = FALSE}
+kable(mean_month_consumption)
+renderPlot({month_con_plot})
 ```
 
 Estos resultados son congruentes con el consumo por semana, muy de la mano del consumo por mes pero que nos permite un acercamiento más preciso al consumo en cada periodo de tiempo.
 
-```{r}
-mean_week_consumption
-week_con_plot
+```{r, echo = FALSE, message = FALSE}
+kable(mean_week_consumption)
+renderPlot({week_con_plot})
 ```
 
 ### Consumo por día de mes
 
-Tal y como se puede observar, el consumo diario en los diversos días del mes es más o menos constante durante todo el transcurso del mes.
+A continuación se puede observar el consumo medio en cada día del mes.
 
-```{r}
-mean_day_consumption
-day_con_plot
+```{r, echo = FALSE, message = FALSE}
+kable(mean_day_consumption)
+renderPlot({day_con_plot})
 ```
 
-A continuación, mostramos asimismo el consumo diario en cada uno de los meses, con el objetivo de poder ver, en una misma gráfica, el consumo diario dentro de cada mes.
+La siguiente gráfica muestra, de forma animada, el consumo medio producido en cada día del mes a lo largo de los distintos meses que conforman el año.
 
-```{r}
-animated_month_plot
+```{r, echo = FALSE, message = FALSE}
+renderImage({list(src = "month_plot.gif")}, deleteFile = TRUE)
+```
+
+<br/> <br/> <br/> <br/> <br/> Si lo desea, también puede ver de forma estática el consumo en cada uno de los meses en la siguiente gráfica:
+
+```{r, echo = FALSE, message = FALSE}
+selectInput("selected_month",
+            "Selecciona un mes:",
+            c("Enero", "Febrero", 
+              "Marzo", "Abril", "Mayo",
+              "Junio", "Julio",
+              "Agosto", "Septiembre",
+              "Octubre", "Noviembre",
+              "Diciembre"),
+            multiple = FALSE)
+```
+
+```{r, echo = FALSE, message = FALSE}
+renderPlot({
+  data_day_month_labeled %>% 
+    filter(month == input$selected_month) %>% 
+    ggplot(aes(day, consumption, fill = consumption)) +
+      geom_bar(stat = "identity") +
+      labs(x = "Día del mes", y = "Consumo (Wh)") +
+      scale_fill_gradient(low = "#2f00ff", high = "#ff0040")
+})
 ```
 
 ### Consumo por día de la semana
 
-Como se observa en los datos respecto a los días de la semana, estos también son más o menos constantes a lo largo de toda la semana, siendo ligeramente superiores (tal y como era de esperar), durante el viernes, el sábado y el domingo (y particularmente el sábado).
+La siguiente gráfica muestra el consumo medio en cada uno de los días de la semana.
+
+```{r, echo = FALSE, message = FALSE}
+kable(mean_wday_consumption)
+renderPlot({wday_con_plot})
+```
+
+Asimismo, puede consultar el desglose año a año del consumo
 
 ```{r}
-mean_wday_consumption
-wday_con_plot
+renderPlot({wday_consumption_facet})
 ```
 
 ### Consumo por hora del día
 
-Respecto al consumo en función del tramo de hora del día, éste distingue dos periodos más o menos diferenciados: el periodo de consumo medio-alto situado entre las 13 horas y las 2-3 horas; y el periodo de consumo bajo situado entre las 3 horas y las 12 horas.
+Por último, a continuación puede encontrar el desglose del consumo medio a lo largo del día:
 
-Como se puede comprobar, el consumo durante la primera parte de la mañana es bastante bajo, disparándose éste a partir de las 13 horas. Por tanto, debiese tenerse en cuenta de cara a futuras contrataciones que modulen el precio de la energía en función del tramo horario en el cual se consuma.
-
-```{r}
-mean_hour_consumption
-hour_con_plot
+```{r, echo = FALSE, message = FALSE}
+kable(mean_hour_consumption)
+renderPlot({hour_con_plot})
 ```
